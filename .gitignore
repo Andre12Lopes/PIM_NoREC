@@ -5,4 +5,9 @@
 *.s
 *.o.*
 
+results*
+
+test/bank/bank
+test/benchmark/launch
+
 .clang-format

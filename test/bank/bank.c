@@ -87,15 +87,15 @@ int main()
         nb_cycles = perfcounter_get() - initial_time;
     }
 
-    // for (int i = 0; i < NR_TASKLETS; ++i)
-    // {
-    //     if (me() == i)
-    //     {
-    //         n_aborts += t_aborts;
-    //     }
+    for (int i = 0; i < NR_TASKLETS; ++i)
+    {
+        if (me() == i)
+        {
+            n_aborts += t.Aborts;
+        }
 
-    //     barrier_wait(&my_barrier);
-    // }
+        barrier_wait(&my_barrier);
+    }
 
     check_total();
     
