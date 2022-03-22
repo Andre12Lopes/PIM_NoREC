@@ -1,0 +1,8 @@
+# Compiled objects
+*.o
+*.so
+*.a
+*.s
+*.o.*
+
+.clang-format
