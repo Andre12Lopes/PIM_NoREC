@@ -15,9 +15,9 @@
 
 
 #define TRANSFER 2
-#define N_ACCOUNTS 800
+#define N_ACCOUNTS 10
 #define ACCOUNT_V 1000
-#define N_TRANSACTIONS 10
+#define N_TRANSACTIONS 1000
 
 BARRIER_INIT(my_barrier, NR_TASKLETS);
 
