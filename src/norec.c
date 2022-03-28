@@ -74,10 +74,10 @@ TxAbort(Thread *Self)
     Self->Retries++;
     Self->Aborts++;
 
-    if (Self->Retries > 3)
-    { /* TUNABLE */
-        backoff(Self, Self->Retries);
-    }
+    // if (Self->Retries > 3)
+    // { /* TUNABLE */
+    //     backoff(Self, Self->Retries);
+    // }
 
     Self->status = TX_ABORTED;
 
