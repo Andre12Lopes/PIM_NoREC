@@ -120,6 +120,8 @@ TxInit(TYPE Thread *t, long id)
     t->UniqID = id;
     t->rng = id + 1;
     t->xorrng[0] = t->rng;
+    t->Starts = 0;
+    t->Aborts = 0;
 
     MakeList(NOREC_INIT_NUM_ENTRY, &(t->wrSet));
     t->wrSet.put = t->wrSet.List;
