@@ -1,7 +1,7 @@
 ROOT = ../..
 
 CC = dpu-upmem-dpurte-clang
-NR_TASKLETS = 24
+NR_TASKLETS = 10
 
 TM := norec
 SRCDIR := $(ROOT)/src
@@ -16,15 +16,14 @@ CFLAGS += -Wall -Wno-unused-label -Wno-unused-function -std=c11
 LDFLAGS += -L$(LIBDIR) -l$(TM)
 CPPFLAGS += -I$(SRCDIR)
 
-# DEFINES += -DTX_IN_MRAM
-# DEFINES += -DRO_TX
+DEFINES += -DTX_IN_MRAM
 
 .PHONY:	all clean
 
 all: $(TARGET)
 
 %.o: %.c
-	$(CC) -DNR_TASKLETS=$(NR_TASKLETS) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+	$(CC) -DNR_TASKLETS=$(NR_TASKLETS) $(CPPFLAGS) $(CFLAGS) $(DEFINES) -c -o $@ $<
 
 bank.o:
 

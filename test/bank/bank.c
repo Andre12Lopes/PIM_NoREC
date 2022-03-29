@@ -15,7 +15,7 @@
 
 
 #define TRANSFER 2
-#define N_ACCOUNTS 10
+#define N_ACCOUNTS 800
 #define ACCOUNT_V 1000
 #define N_TRANSACTIONS 1000
 
@@ -31,6 +31,10 @@ unsigned int bank[N_ACCOUNTS];
 void initialize_accounts();
 void check_total();
 
+#ifdef TX_IN_MRAM
+Thread __mram_noinit t_mram[NR_TASKLETS];
+#endif
+
 int main()
 {
     Thread t;
@@ -43,7 +47,11 @@ int main()
     s = (uint64_t)me();
     tid = me();
 
+#ifdef TX_IN_MRAM
+    TxInit(&t_mram[tid], tid);
+#else
     TxInit(&t, tid);
+#endif
 
     initialize_accounts();
 
@@ -61,68 +69,34 @@ int main()
 
     for (int i = 0; i < N_TRANSACTIONS; ++i)
     {
-        // ra = RAND_R_FNC(s) % N_ACCOUNTS;
-        // rb = RAND_R_FNC(s) % N_ACCOUNTS;
+        ra = RAND_R_FNC(s) % N_ACCOUNTS;
+        rb = RAND_R_FNC(s) % N_ACCOUNTS;
 
+#ifdef TX_IN_MRAM
+        START(&t_mram[tid]);
 
+        a = LOAD(&t_mram[tid], &bank[ra]);
+        a -= TRANSFER;
+        STORE(&t_mram[tid], &bank[ra], a);
+
+        b = LOAD(&t_mram[tid], &bank[rb]);
+        b += TRANSFER;
+        STORE(&t_mram[tid], &bank[rb], b);
+
+        COMMIT(&t_mram[tid]);
+#else
         START(&t);
 
-        ra = RAND_R_FNC(s) % N_ACCOUNTS;
-
         a = LOAD(&t, &bank[ra]);
         a -= TRANSFER;
         STORE(&t, &bank[ra], a);
 
-
-        ra = RAND_R_FNC(s) % N_ACCOUNTS;
-
-        a = LOAD(&t, &bank[ra]);
-        a -= TRANSFER;
-        STORE(&t, &bank[ra], a);
-
-
-        // ra = RAND_R_FNC(s) % N_ACCOUNTS;
-
-        // a = LOAD(&t, &bank[ra]);
-        // a -= TRANSFER;
-        // STORE(&t, &bank[ra], a);
-
-
-        // ra = RAND_R_FNC(s) % N_ACCOUNTS;
-
-        // a = LOAD(&t, &bank[ra]);
-        // a -= TRANSFER;
-        // STORE(&t, &bank[ra], a);
-
-
-        // ra = RAND_R_FNC(s) % N_ACCOUNTS;
-
-        // a = LOAD(&t, &bank[ra]);
-        // a += TRANSFER;
-        // STORE(&t, &bank[ra], a);
-
-
-        // ra = RAND_R_FNC(s) % N_ACCOUNTS;
-
-        // a = LOAD(&t, &bank[ra]);
-        // a += TRANSFER;
-        // STORE(&t, &bank[ra], a);
-
-
-        ra = RAND_R_FNC(s) % N_ACCOUNTS;
-
-        a = LOAD(&t, &bank[ra]);
-        a += TRANSFER;
-        STORE(&t, &bank[ra], a);
-
-
-        ra = RAND_R_FNC(s) % N_ACCOUNTS;
-
-        a = LOAD(&t, &bank[ra]);
-        a += TRANSFER;
-        STORE(&t, &bank[ra], a);
+        b = LOAD(&t, &bank[rb]);
+        b += TRANSFER;
+        STORE(&t, &bank[rb], b);
 
         COMMIT(&t);
+#endif
     }
 
     // ------------------------------------------------------

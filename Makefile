@@ -15,12 +15,14 @@ LIBNOREC := $(LIBDIR)/lib$(TM).a
 
 BANK := bank
 
+DEFINES := -DTX_IN_MRAM
+
 .PHONY:	all clean
 
 all: $(LIBNOREC)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) $(DEFINES) -c -o $@ $<
 
 # Additional dependencies
 $(SRCDIR)/norec.o: $(SRCDIR)/norec.h $(SRCDIR)/thread_def.h $(SRCDIR)/utils.h

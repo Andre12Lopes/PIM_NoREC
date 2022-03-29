@@ -10,15 +10,14 @@
 #define FILTERHASH(a)                   ((UNS(a) >> 2) ^ (UNS(a) >> 5))
 #define FILTERBITS(a)                   (1 << (FILTERHASH(a) & 0x1F))
 
-enum {
+enum 
+{
   TX_ACTIVE = 1,
   TX_COMMITTED = 2,
   TX_ABORTED = 4
 };
 
 #include "thread_def.h"
-
-fsb_allocator_t allocator;
 
 volatile long *LOCK;
 
@@ -69,7 +68,7 @@ backoff(Thread *Self, long attempt)
 }
 
 void 
-TxAbort(Thread *Self)
+TxAbort(TYPE Thread *Self)
 {
     Self->Retries++;
     Self->Aborts++;
@@ -87,19 +86,19 @@ TxAbort(Thread *Self)
 
 // --------------------------------------------------------------
 
-static inline AVPair*
-MakeList (long sz, Log* log)
+static inline TYPE AVPair*
+MakeList (long sz, TYPE Log* log)
 {
-    AVPair* ap = log->List;
+    TYPE AVPair* ap = log->List;
     // assert(ap);
 
     memset(ap, 0, sizeof(*ap) * sz);
 
-    AVPair* List = ap;
-    AVPair* Tail = NULL;
+    TYPE AVPair* List = ap;
+    TYPE AVPair* Tail = NULL;
     long i;
     for (i = 0; i < sz; i++) {
-        AVPair* e = ap++;
+        TYPE AVPair* e = ap++;
         e->Next    = ap;
         e->Prev    = Tail;
         e->Ordinal = i;
@@ -111,7 +110,7 @@ MakeList (long sz, Log* log)
 }
 
 void 
-TxInit(Thread *t, long id)
+TxInit(TYPE Thread *t, long id)
 {
     /* CCM: so we can access NOREC's thread metadata in signal handlers */
     // pthread_setspecific(global_key_self, (void*)t);
@@ -132,7 +131,7 @@ TxInit(Thread *t, long id)
 // --------------------------------------------------------------
 
 static inline void
-txReset (Thread* Self)
+txReset (TYPE Thread* Self)
 {
     Self->wrSet.put = Self->wrSet.List;
     Self->wrSet.tail = NULL;
@@ -145,7 +144,7 @@ txReset (Thread* Self)
 }
 
 void 
-TxStart(Thread *Self)
+TxStart(TYPE Thread *Self)
 {
     txReset(Self);
 
@@ -165,7 +164,7 @@ TxStart(Thread *Self)
 
 // returns -1 if not coherent
 static inline long 
-ReadSetCoherent(Thread *Self)
+ReadSetCoherent(TYPE Thread *Self)
 {
     long time;
     while (1)
@@ -177,10 +176,9 @@ ReadSetCoherent(Thread *Self)
             continue;
         }
 
-        Log *const rd = &Self->rdSet;
-        AVPair *const EndOfList = rd->put;
-        AVPair *e;
-
+        TYPE Log *const rd = &Self->rdSet;
+        TYPE AVPair *const EndOfList = rd->put;
+        TYPE AVPair *e;
         for (e = rd->List; e != EndOfList; e = e->Next)
         {
             if (e->Valu != LDNF(e->Addr))
@@ -211,7 +209,7 @@ ReadSetCoherent(Thread *Self)
 // }
 
 intptr_t 
-TxLoad(Thread *Self, volatile intptr_t *Addr)
+TxLoad(TYPE Thread *Self, volatile intptr_t *Addr)
 {
     intptr_t Valu;
 
@@ -223,8 +221,8 @@ TxLoad(Thread *Self, volatile intptr_t *Addr)
     intptr_t msk = FILTERBITS(Addr);
     if ((Self->wrSet.BloomFilter & msk) == msk)
     {
-        Log *wr = &Self->wrSet;
-        AVPair *e;
+        TYPE Log *wr = &Self->wrSet;
+        TYPE AVPair *e;
         for (e = wr->tail; e != NULL; e = e->Prev)
         {
             if (e->Addr == Addr)
@@ -255,8 +253,8 @@ TxLoad(Thread *Self, volatile intptr_t *Addr)
         Valu = LDNF(Addr);
     }
 
-    Log *k = &Self->rdSet;
-    AVPair *e = k->put;
+    TYPE Log *k = &Self->rdSet;
+    TYPE AVPair *e = k->put;
     if (e == NULL)
     {
     	printf("[WARNING] Reached RS extend\n");
@@ -278,13 +276,13 @@ TxLoad(Thread *Self, volatile intptr_t *Addr)
 // --------------------------------------------------------------
 
 void 
-TxStore(Thread *Self, volatile intptr_t *addr, intptr_t valu)
+TxStore(TYPE Thread *Self, volatile intptr_t *addr, intptr_t valu)
 {
-    Log *k = &Self->wrSet;
+    TYPE Log *k = &Self->wrSet;
 
     k->BloomFilter |= FILTERBITS(addr);
 
-    AVPair *e = k->put;
+    TYPE AVPair *e = k->put;
     if (e == NULL)
     {
     	printf("[WARNING] Reached WS extend\n");
@@ -304,7 +302,7 @@ TxStore(Thread *Self, volatile intptr_t *addr, intptr_t valu)
 // --------------------------------------------------------------
 
 static inline void 
-txCommitReset(Thread *Self)
+txCommitReset(TYPE Thread *Self)
 {
     txReset(Self);
     Self->Retries = 0;
@@ -313,10 +311,10 @@ txCommitReset(Thread *Self)
 }
 
 static inline void 
-WriteBackForward(Log *k)
+WriteBackForward(TYPE Log *k)
 {
-    AVPair *e;
-    AVPair *End = k->put;
+    TYPE AVPair *e;
+    TYPE AVPair *End = k->put;
     for (e = k->List; e != End; e = e->Next)
     {
         *(e->Addr) = e->Valu;
@@ -324,9 +322,9 @@ WriteBackForward(Log *k)
 }
 
 static inline long 
-TryFastUpdate(Thread *Self)
+TryFastUpdate(TYPE Thread *Self)
 {
-    Log *const wr = &Self->wrSet;
+    TYPE Log *const wr = &Self->wrSet;
     // long ctr;
 
 acquire:
@@ -363,7 +361,7 @@ acquire:
 }
 
 int 
-TxCommit(Thread *Self)
+TxCommit(TYPE Thread *Self)
 {
     /* Fast-path: Optional optimization for pure-readers */
     if (Self->wrSet.put == Self->wrSet.List)
