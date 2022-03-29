@@ -15,7 +15,7 @@ LIBNOREC := $(LIBDIR)/lib$(TM).a
 
 BANK := bank
 
-DEFINES := -DTX_IN_MRAM
+# DEFINES := -DTX_IN_MRAM
 
 .PHONY:	all clean
 

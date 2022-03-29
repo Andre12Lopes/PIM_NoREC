@@ -36,6 +36,9 @@ struct _Thread
     Log rdSet;
     Log wrSet;
     long status;
+    perfcounter_t transaction_start;
+    uint32_t process_cycles;
+    uint32_t commit_cycles;
     // sigjmp_buf* envPtr;
 };
 

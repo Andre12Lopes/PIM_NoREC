@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <alloc.h>
+#include <perfcounter.h>
 
 #include "norec.h"
 #include "utils.h"
@@ -122,6 +123,9 @@ TxInit(TYPE Thread *t, long id)
     t->xorrng[0] = t->rng;
     t->Starts = 0;
     t->Aborts = 0;
+    
+    t->process_cycles = 0;
+    t->commit_cycles = 0;
 
     MakeList(NOREC_INIT_NUM_ENTRY, &(t->wrSet));
     t->wrSet.put = t->wrSet.List;
@@ -160,6 +164,8 @@ TxStart(TYPE Thread *Self)
     {
         Self->snapshot = *LOCK;
     } while ((Self->snapshot & 1) != 0);
+
+    Self->transaction_start = perfcounter_config(COUNT_CYCLES, false);
 }
 
 // --------------------------------------------------------------
@@ -365,19 +371,25 @@ acquire:
 int 
 TxCommit(TYPE Thread *Self)
 {
+    Self->process_cycles += perfcounter_get() - Self->transaction_start;
+    Self->transaction_start = perfcounter_config(COUNT_CYCLES, false);
+
     /* Fast-path: Optional optimization for pure-readers */
     if (Self->wrSet.put == Self->wrSet.List)
     {
         txCommitReset(Self);
+        Self->commit_cycles += perfcounter_get() - Self->transaction_start;
         return 1;
     }
 
     if (TryFastUpdate(Self))
     {
         txCommitReset(Self);
+        Self->commit_cycles += perfcounter_get() - Self->transaction_start;
         return 1;
     }
 
     TxAbort(Self);
+    Self->commit_cycles += perfcounter_get() - Self->transaction_start;
     return 0;
 }
