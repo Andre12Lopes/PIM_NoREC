@@ -24,11 +24,16 @@ BARRIER_INIT(my_barrier, NR_TASKLETS);
 __host uint32_t nb_cycles;
 __host uint32_t nb_process_cycles;
 __host uint32_t nb_commit_cycles;
+__host uint32_t nb_wasted_cycles;
 __host uint32_t n_aborts;
 __host uint32_t n_trans;
 __host uint32_t n_tasklets;
 
-unsigned int bank[N_ACCOUNTS];
+#ifdef ACC_IN_MRAM
+int __mram_noinit bank[N_ACCOUNTS];
+#else
+int bank[N_ACCOUNTS];
+#endif
 
 void initialize_accounts();
 void check_total();
@@ -40,10 +45,9 @@ Thread __mram_noinit t_mram[NR_TASKLETS];
 int main()
 {
     Thread t;
-    int ra, rb, rc, tid;
-    unsigned int a, b;
+    int ra, rb, tid;
+    int a, b;
     uint64_t s;
-    int idx = 0;
     perfcounter_t initial_time;
 
     s = (uint64_t)me();
@@ -111,6 +115,7 @@ int main()
 
         nb_process_cycles = 0;
         nb_commit_cycles = 0;
+        nb_wasted_cycles = 0;
     }
 
     for (int i = 0; i < NR_TASKLETS; ++i)
@@ -119,8 +124,15 @@ int main()
         {
             n_aborts += t.Aborts;
 
-            nb_process_cycles += t.process_cycles;
-            nb_commit_cycles += t.commit_cycles;
+#ifdef TX_IN_MRAM
+            nb_process_cycles += ((double) t_mram[tid].process_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+            nb_commit_cycles += ((double) t_mram[tid].commit_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+            nb_wasted_cycles += ((double) (t_mram[tid].total_cycles - (t_mram[tid].process_cycles + t_mram[tid].commit_cycles)) / (N_TRANSACTIONS * NR_TASKLETS));
+#else
+            nb_process_cycles += ((double) t.process_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+            nb_commit_cycles += ((double) t.commit_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+            nb_wasted_cycles += ((double) (t.total_cycles - (t.process_cycles + t.commit_cycles)) / (N_TRANSACTIONS * NR_TASKLETS));
+#endif
         }
 
         barrier_wait(&my_barrier);

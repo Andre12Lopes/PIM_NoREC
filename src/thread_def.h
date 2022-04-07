@@ -9,7 +9,7 @@ typedef struct _AVPair
 {
     TYPE struct _AVPair *Next;
     TYPE struct _AVPair *Prev;
-    volatile intptr_t *Addr;
+    volatile TYPE_ACC intptr_t *Addr;
     intptr_t Valu;
     long Ordinal;
 } AVPair;
@@ -36,9 +36,11 @@ struct _Thread
     Log rdSet;
     Log wrSet;
     long status;
-    perfcounter_t transaction_start;
+    perfcounter_t time;
+    perfcounter_t start_time;
     uint32_t process_cycles;
     uint32_t commit_cycles;
+    uint32_t total_cycles;
     // sigjmp_buf* envPtr;
 };
 

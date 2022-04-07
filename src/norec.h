@@ -9,6 +9,12 @@
 #define TYPE
 #endif
 
+#ifdef ACC_IN_MRAM
+#define TYPE_ACC __mram_ptr
+#else
+#define TYPE_ACC
+#endif
+
 typedef struct _Thread Thread;
 
 void TxAbort(TYPE Thread *);
@@ -17,9 +23,9 @@ void TxInit(TYPE Thread *t, long id);
 
 void TxStart(TYPE Thread *);
 
-intptr_t TxLoad(TYPE Thread *, volatile intptr_t *);
+intptr_t TxLoad(TYPE Thread *, volatile TYPE_ACC intptr_t *);
 
-void TxStore(TYPE Thread *, volatile intptr_t *, intptr_t);
+void TxStore(TYPE Thread *, volatile TYPE_ACC intptr_t *, intptr_t);
 
 int TxCommit(TYPE Thread *);
 // int TxCommitSTM(Thread *);

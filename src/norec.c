@@ -165,7 +165,8 @@ TxStart(TYPE Thread *Self)
         Self->snapshot = *LOCK;
     } while ((Self->snapshot & 1) != 0);
 
-    Self->transaction_start = perfcounter_config(COUNT_CYCLES, false);
+    Self->time = perfcounter_config(COUNT_CYCLES, false);
+    Self->start_time = perfcounter_config(COUNT_CYCLES, false);
 }
 
 // --------------------------------------------------------------
@@ -217,7 +218,7 @@ ReadSetCoherent(TYPE Thread *Self)
 // }
 
 intptr_t 
-TxLoad(TYPE Thread *Self, volatile intptr_t *Addr)
+TxLoad(TYPE Thread *Self, volatile TYPE_ACC intptr_t *Addr)
 {
     intptr_t Valu;
 
@@ -284,7 +285,7 @@ TxLoad(TYPE Thread *Self, volatile intptr_t *Addr)
 // --------------------------------------------------------------
 
 void 
-TxStore(TYPE Thread *Self, volatile intptr_t *addr, intptr_t valu)
+TxStore(TYPE Thread *Self, volatile TYPE_ACC intptr_t *addr, intptr_t valu)
 {
     TYPE Log *k = &Self->wrSet;
 
@@ -371,25 +372,29 @@ acquire:
 int 
 TxCommit(TYPE Thread *Self)
 {
-    Self->process_cycles += perfcounter_get() - Self->transaction_start;
-    Self->transaction_start = perfcounter_config(COUNT_CYCLES, false);
+    Self->process_cycles += perfcounter_get() - Self->time;
+    Self->time = perfcounter_config(COUNT_CYCLES, false);
 
     /* Fast-path: Optional optimization for pure-readers */
     if (Self->wrSet.put == Self->wrSet.List)
     {
         txCommitReset(Self);
-        Self->commit_cycles += perfcounter_get() - Self->transaction_start;
+        Self->commit_cycles += perfcounter_get() - Self->time;
+        Self->total_cycles += perfcounter_get() - Self->start_time;
         return 1;
     }
 
     if (TryFastUpdate(Self))
     {
         txCommitReset(Self);
-        Self->commit_cycles += perfcounter_get() - Self->transaction_start;
+        Self->commit_cycles += perfcounter_get() - Self->time;
+        Self->total_cycles += perfcounter_get() - Self->start_time;
         return 1;
     }
 
     TxAbort(Self);
-    Self->commit_cycles += perfcounter_get() - Self->transaction_start;
+    
+    Self->commit_cycles += perfcounter_get() - Self->time;
+    Self->total_cycles += perfcounter_get() - Self->start_time;
     return 0;
 }
