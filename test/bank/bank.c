@@ -54,9 +54,17 @@ int main()
     tid = me();
 
 #ifdef TX_IN_MRAM
-    TxInit(&t_mram[tid], tid);
+    t_mram[tid].TID = tid;
+    t_mram[tid].process_cycles = 0;
+    t_mram[tid].commit_cycles = 0;
+    t_mram[tid].total_cycles = 0;
+    t_mram[tid].start_time = 0;
 #else
-    TxInit(&t, tid);
+    t.TID = tid;
+    t.process_cycles = 0;
+    t.commit_cycles = 0;
+    t.total_cycles = 0;
+    t.start_time = 0;
 #endif
 
     initialize_accounts();

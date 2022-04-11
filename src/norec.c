@@ -166,7 +166,10 @@ TxStart(TYPE Thread *Self)
     } while ((Self->snapshot & 1) != 0);
 
     Self->time = perfcounter_config(COUNT_CYCLES, false);
-    Self->start_time = perfcounter_config(COUNT_CYCLES, false);
+    if (Self->start_time == 0)
+    {
+        Self->start_time = perfcounter_config(COUNT_CYCLES, false);
+    }
 }
 
 // --------------------------------------------------------------
