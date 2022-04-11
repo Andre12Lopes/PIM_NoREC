@@ -21,13 +21,13 @@
 
 BARRIER_INIT(my_barrier, NR_TASKLETS);
 
-__host uint32_t nb_cycles;
-__host uint32_t nb_process_cycles;
-__host uint32_t nb_commit_cycles;
-__host uint32_t nb_wasted_cycles;
-__host uint32_t n_aborts;
-__host uint32_t n_trans;
-__host uint32_t n_tasklets;
+__host uint64_t nb_cycles;
+__host uint64_t nb_process_cycles;
+__host uint64_t nb_commit_cycles;
+__host uint64_t nb_wasted_cycles;
+__host uint64_t n_aborts;
+__host uint64_t n_trans;
+__host uint64_t n_tasklets;
 
 #ifdef ACC_IN_MRAM
 int __mram_noinit bank[N_ACCOUNTS];

@@ -38,9 +38,9 @@ struct _Thread
     long status;
     perfcounter_t time;
     perfcounter_t start_time;
-    uint32_t process_cycles;
-    uint32_t commit_cycles;
-    uint32_t total_cycles;
+    uint64_t process_cycles;
+    uint64_t commit_cycles;
+    uint64_t total_cycles;
     // sigjmp_buf* envPtr;
 };
 
