@@ -168,6 +168,7 @@ TxStart(TYPE Thread *Self)
     Self->time = perfcounter_config(COUNT_CYCLES, false);
     if (Self->start_time == 0)
     {
+        printf("#HERE\n");
         Self->start_time = perfcounter_config(COUNT_CYCLES, false);
     }
 }
@@ -384,6 +385,7 @@ TxCommit(TYPE Thread *Self)
         txCommitReset(Self);
         Self->commit_cycles += perfcounter_get() - Self->time;
         Self->total_cycles += perfcounter_get() - Self->start_time;
+        Self->start_time = 0;
         return 1;
     }
 
@@ -392,6 +394,7 @@ TxCommit(TYPE Thread *Self)
         txCommitReset(Self);
         Self->commit_cycles += perfcounter_get() - Self->time;
         Self->total_cycles += perfcounter_get() - Self->start_time;
+        Self->start_time = 0;
         return 1;
     }
 
@@ -399,5 +402,6 @@ TxCommit(TYPE Thread *Self)
     
     Self->commit_cycles += perfcounter_get() - Self->time;
     Self->total_cycles += perfcounter_get() - Self->start_time;
+    Self->start_time = 0;
     return 0;
 }
