@@ -17,6 +17,7 @@ BANK := bank
 
 # DEFINES := -DTX_IN_MRAM
 DEFINES += -DACC_IN_MRAM
+DEFINES += -DBACKOFF
 
 .PHONY:	all clean
 

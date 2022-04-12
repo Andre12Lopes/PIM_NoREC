@@ -71,13 +71,15 @@ backoff(Thread *Self, long attempt)
 void 
 TxAbort(TYPE Thread *Self)
 {
-    Self->Retries++;
     Self->Aborts++;
 
+#ifdef BACKOFF
+    Self->Retries++;
     if (Self->Retries > 3)
     { /* TUNABLE */
         backoff(Self, Self->Retries);
     }
+#endif
 
     Self->status = TX_ABORTED;
 
