@@ -74,10 +74,10 @@ TxAbort(TYPE Thread *Self)
     Self->Retries++;
     Self->Aborts++;
 
-    // if (Self->Retries > 3)
-    // { /* TUNABLE */
-    //     backoff(Self, Self->Retries);
-    // }
+    if (Self->Retries > 3)
+    { /* TUNABLE */
+        backoff(Self, Self->Retries);
+    }
 
     Self->status = TX_ABORTED;
 
@@ -168,7 +168,6 @@ TxStart(TYPE Thread *Self)
     Self->time = perfcounter_config(COUNT_CYCLES, false);
     if (Self->start_time == 0)
     {
-        printf("#HERE\n");
         Self->start_time = perfcounter_config(COUNT_CYCLES, false);
     }
 }
