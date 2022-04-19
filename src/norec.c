@@ -40,7 +40,7 @@ MarsagliaXORV(unsigned long long x)
 }
 
 static inline unsigned long long 
-MarsagliaXOR(unsigned long long *seed)
+MarsagliaXOR(TYPE unsigned long long *seed)
 {
     unsigned long long x = MarsagliaXORV(*seed);
     *seed = x;
@@ -49,13 +49,13 @@ MarsagliaXOR(unsigned long long *seed)
 }
 
 static inline unsigned long long 
-TSRandom(Thread *Self)
+TSRandom(TYPE Thread *Self)
 {
     return MarsagliaXOR(&Self->rng);
 }
 
 static inline void 
-backoff(Thread *Self, long attempt)
+backoff(TYPE Thread *Self, long attempt)
 {
     unsigned long long stall = TSRandom(Self) & 0xF;
     stall += attempt >> 2;
