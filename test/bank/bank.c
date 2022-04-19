@@ -77,6 +77,7 @@ int main()
     {
         n_trans = N_TRANSACTIONS * NR_TASKLETS;
         n_tasklets = NR_TASKLETS;
+        n_aborts = 0;
 
         initial_time = perfcounter_config(COUNT_CYCLES, false);
     }
