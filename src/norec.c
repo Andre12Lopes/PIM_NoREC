@@ -58,8 +58,10 @@ static inline void
 backoff(TYPE Thread *Self, long attempt)
 {
     unsigned long long stall = TSRandom(Self) & 0xF;
-    stall += attempt >> 2;
-    stall *= 10;
+    // stall += attempt >> 2;
+    // stall *= 10;
+    // stall = (stall * 10) << attempt
+    stall = stall << attempt;
     /* CCM: timer function may misbehave */
     volatile typeof(stall) i = 0;
     while (i++ < stall)
