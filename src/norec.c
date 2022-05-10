@@ -158,6 +158,10 @@ TxStart(TYPE Thread *Self)
 {
     txReset(Self);
 
+    Self->read_cycles = 0;
+    Self->write_cycles = 0;
+    Self->validation_cycles = 0;
+
     MEMBARLDLD();
 
     // Self->envPtr = envPtr;
@@ -228,6 +232,8 @@ TxLoad(TYPE Thread *Self, volatile TYPE_ACC intptr_t *Addr)
 {
     intptr_t Valu;
 
+    Self->start_read = perfcounter_config(COUNT_CYCLES, false);
+
     // if (Self->snapshot == -1)
     // {
     //     printf("TID = %ld\n", Self->UniqID);
@@ -256,7 +262,12 @@ TxLoad(TYPE Thread *Self, volatile TYPE_ACC intptr_t *Addr)
     Valu = LDNF(Addr);
     while (*LOCK != Self->snapshot)
     {
+        Self->start_validation = perfcounter_config(COUNT_CYCLES, false);
+
         long newSnap = ReadSetCoherent(Self);
+
+        Self->validation_cycles += perfcounter_get() - Self->start_validation;
+
         if (newSnap == -1)
         {
             TxAbort(Self);
@@ -285,6 +296,8 @@ TxLoad(TYPE Thread *Self, volatile TYPE_ACC intptr_t *Addr)
     e->Addr = Addr;
     e->Valu = Valu;
 
+    Self->read_cycles += perfcounter_get() - Self->start_read;
+
     return Valu;
 }
 
@@ -293,6 +306,8 @@ TxLoad(TYPE Thread *Self, volatile TYPE_ACC intptr_t *Addr)
 void 
 TxStore(TYPE Thread *Self, volatile TYPE_ACC intptr_t *addr, intptr_t valu)
 {
+    Self->start_write = perfcounter_config(COUNT_CYCLES, false);
+
     TYPE Log *k = &Self->wrSet;
 
     k->BloomFilter |= FILTERBITS(addr);
@@ -312,6 +327,8 @@ TxStore(TYPE Thread *Self, volatile TYPE_ACC intptr_t *addr, intptr_t valu)
     k->put = e->Next;
     e->Addr = addr;
     e->Valu = valu;
+
+    Self->write_cycles += perfcounter_get() - Self->start_write;
 }
 
 // --------------------------------------------------------------
@@ -340,6 +357,7 @@ static inline long
 TryFastUpdate(TYPE Thread *Self)
 {
     TYPE Log *const wr = &Self->wrSet;
+    perfcounter_t s_time;
     // long ctr;
 
 acquire:
@@ -349,11 +367,15 @@ acquire:
     {
     	release(LOCK);
 
+        s_time = perfcounter_config(COUNT_CYCLES, false);
+
     	long newSnap = ReadSetCoherent(Self);
         if (newSnap == -1)
         {
             return 0; // TxAbort(Self);
         }
+
+        Self->total_commit_validation_cycles += perfcounter_get() - s_time;
 
         Self->snapshot = newSnap;
 
@@ -378,7 +400,9 @@ acquire:
 int 
 TxCommit(TYPE Thread *Self)
 {
-    Self->process_cycles += perfcounter_get() - Self->time;
+    uint64_t t_process_cycles;
+
+    t_process_cycles = perfcounter_get() - Self->time;
     Self->time = perfcounter_config(COUNT_CYCLES, false);
 
     /* Fast-path: Optional optimization for pure-readers */
@@ -387,6 +411,11 @@ TxCommit(TYPE Thread *Self)
         txCommitReset(Self);
         Self->commit_cycles += perfcounter_get() - Self->time;
         Self->total_cycles += perfcounter_get() - Self->start_time;
+        Self->process_cycles += t_process_cycles;
+        Self->total_read_cycles += Self->read_cycles;
+        Self->total_write_cycles += Self->write_cycles;
+        Self->total_validation_cycles += Self->validation_cycles;
+
         Self->start_time = 0;
         return 1;
     }
@@ -396,14 +425,16 @@ TxCommit(TYPE Thread *Self)
         txCommitReset(Self);
         Self->commit_cycles += perfcounter_get() - Self->time;
         Self->total_cycles += perfcounter_get() - Self->start_time;
+        Self->process_cycles += t_process_cycles;
+        Self->total_read_cycles += Self->read_cycles;
+        Self->total_write_cycles += Self->write_cycles;
+        Self->total_validation_cycles += Self->validation_cycles;
+
         Self->start_time = 0;
         return 1;
     }
 
     TxAbort(Self);
     
-    Self->commit_cycles += perfcounter_get() - Self->time;
-    Self->total_cycles += perfcounter_get() - Self->start_time;
-    Self->start_time = 0;
     return 0;
 }

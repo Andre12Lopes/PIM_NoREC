@@ -23,7 +23,11 @@ BARRIER_INIT(my_barrier, NR_TASKLETS);
 
 __host uint64_t nb_cycles;
 __host uint64_t nb_process_cycles;
+__host uint64_t nb_process_read_cycles;
+__host uint64_t nb_process_write_cycles;
+__host uint64_t nb_process_validation_cycles;
 __host uint64_t nb_commit_cycles;
+__host uint64_t nb_commit_validation_cycles;
 __host uint64_t nb_wasted_cycles;
 __host uint64_t n_aborts;
 __host uint64_t n_trans;
@@ -57,16 +61,36 @@ int main()
     TxInit(&t_mram[tid], tid);
 
     t_mram[tid].process_cycles = 0;
+    t_mram[tid].read_cycles = 0;
+    t_mram[tid].write_cycles = 0;
+    t_mram[tid].validation_cycles = 0;
+    t_mram[tid].total_read_cycles = 0;
+    t_mram[tid].total_write_cycles = 0;
+    t_mram[tid].total_validation_cycles = 0;
+    t_mram[tid].total_commit_validation_cycles = 0;
     t_mram[tid].commit_cycles = 0;
     t_mram[tid].total_cycles = 0;
     t_mram[tid].start_time = 0;
+    t_mram[tid].start_read = 0;
+    t_mram[tid].start_write = 0;
+    t_mram[tid].start_validation = 0;
 #else
     TxInit(&t, tid);
 
     t.process_cycles = 0;
+    t.read_cycles = 0;
+    t.write_cycles = 0;
+    t.validation_cycles = 0;
+    t.total_read_cycles = 0;
+    t.total_write_cycles = 0;
+    t.total_validation_cycles = 0;
+    t.total_commit_validation_cycles = 0;
     t.commit_cycles = 0;
     t.total_cycles = 0;
     t.start_time = 0;
+    t.start_read = 0;
+    t.start_write = 0;
+    t.start_validation = 0;
 #endif
 
     initialize_accounts();
@@ -127,6 +151,10 @@ int main()
         nb_process_cycles = 0;
         nb_commit_cycles = 0;
         nb_wasted_cycles = 0;
+        nb_process_read_cycles = 0;
+        nb_process_write_cycles = 0;
+        nb_process_validation_cycles = 0;
+        nb_commit_validation_cycles = 0;
     }
 
     for (int i = 0; i < NR_TASKLETS; ++i)
@@ -137,11 +165,23 @@ int main()
 
 #ifdef TX_IN_MRAM
             nb_process_cycles += ((double) t_mram[tid].process_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+            nb_process_read_cycles += ((double) t_mram[tid].total_read_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+            nb_process_write_cycles += ((double) t_mram[tid].total_write_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+            nb_process_validation_cycles += ((double) t_mram[tid].total_validation_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+
             nb_commit_cycles += ((double) t_mram[tid].commit_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+            nb_commit_validation_cycles += ((double) t_mram[tid].total_commit_validation_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+
             nb_wasted_cycles += ((double) (t_mram[tid].total_cycles - (t_mram[tid].process_cycles + t_mram[tid].commit_cycles)) / (N_TRANSACTIONS * NR_TASKLETS));
 #else
             nb_process_cycles += ((double) t.process_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+            nb_process_read_cycles += ((double) t.total_read_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+            nb_process_write_cycles += ((double) t.total_write_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+            nb_process_validation_cycles += ((double) t.total_validation_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+
             nb_commit_cycles += ((double) t.commit_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+            nb_commit_validation_cycles += ((double) t.total_commit_validation_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+
             nb_wasted_cycles += ((double) (t.total_cycles - (t.process_cycles + t.commit_cycles)) / (N_TRANSACTIONS * NR_TASKLETS));
 #endif
         }
