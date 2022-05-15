@@ -161,9 +161,9 @@ int main()
     {
         if (me() == i)
         {
-            n_aborts += t.Aborts;
-
 #ifdef TX_IN_MRAM
+            n_aborts += t_mram[tid].Aborts;
+
             nb_process_cycles += ((double) t_mram[tid].process_cycles / (N_TRANSACTIONS * NR_TASKLETS));
             nb_process_read_cycles += ((double) t_mram[tid].total_read_cycles / (N_TRANSACTIONS * NR_TASKLETS));
             nb_process_write_cycles += ((double) t_mram[tid].total_write_cycles / (N_TRANSACTIONS * NR_TASKLETS));
@@ -174,6 +174,8 @@ int main()
 
             nb_wasted_cycles += ((double) (t_mram[tid].total_cycles - (t_mram[tid].process_cycles + t_mram[tid].commit_cycles)) / (N_TRANSACTIONS * NR_TASKLETS));
 #else
+            n_aborts += t.Aborts;
+
             nb_process_cycles += ((double) t.process_cycles / (N_TRANSACTIONS * NR_TASKLETS));
             nb_process_read_cycles += ((double) t.total_read_cycles / (N_TRANSACTIONS * NR_TASKLETS));
             nb_process_write_cycles += ((double) t.total_write_cycles / (N_TRANSACTIONS * NR_TASKLETS));
