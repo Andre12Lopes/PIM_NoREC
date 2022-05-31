@@ -228,7 +228,7 @@ ReadSetCoherent(TYPE Thread *Self)
 // }
 
 intptr_t 
-TxLoad(TYPE Thread *Self, volatile TYPE_ACC intptr_t *Addr)
+TxLoad(TYPE Thread *Self, volatile __mram_ptr intptr_t *Addr)
 {
     intptr_t Valu;
 
@@ -304,7 +304,7 @@ TxLoad(TYPE Thread *Self, volatile TYPE_ACC intptr_t *Addr)
 // --------------------------------------------------------------
 
 void 
-TxStore(TYPE Thread *Self, volatile TYPE_ACC intptr_t *addr, intptr_t valu)
+TxStore(TYPE Thread *Self, volatile __mram_ptr intptr_t *addr, intptr_t valu)
 {
     Self->start_write = perfcounter_config(COUNT_CYCLES, false);
 

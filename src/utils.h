@@ -9,7 +9,7 @@
  * Non-faulting load
  * =============================================================================
  */
-#define LDNF(a)                         (*(a)) /* CCM: not yet implemented */
+#define LDNF(a)                         (*((volatile TYPE_ACC intptr_t *)a)) /* CCM: not yet implemented */
 
 /* =============================================================================
  * Memory Barriers

@@ -23,9 +23,9 @@ void TxInit(TYPE Thread *t, long id);
 
 void TxStart(TYPE Thread *);
 
-intptr_t TxLoad(TYPE Thread *, volatile TYPE_ACC intptr_t *);
+intptr_t TxLoad(TYPE Thread *, volatile __mram_ptr intptr_t *);
 
-void TxStore(TYPE Thread *, volatile TYPE_ACC intptr_t *, intptr_t);
+void TxStore(TYPE Thread *, volatile __mram_ptr intptr_t *, intptr_t);
 
 int TxCommit(TYPE Thread *);
 // int TxCommitSTM(Thread *);

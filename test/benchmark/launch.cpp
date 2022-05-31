@@ -25,7 +25,7 @@ int main(void)
     {
         auto dpu = DpuSet::allocate(1);
 
-        dpu.load("../bank/bank");
+        dpu.load("../intset/intset");
         dpu.exec();
 
         nbCycles.front().resize(1);

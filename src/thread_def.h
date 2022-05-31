@@ -1,7 +1,9 @@
 #ifndef _THREAD_DEF_H_
 #define _THREAD_DEF_H_
 
-#define NOREC_INIT_NUM_ENTRY      2
+#include <perfcounter.h>
+
+#define NOREC_INIT_NUM_ENTRY      35
 
 typedef int BitMap;
 
@@ -51,7 +53,6 @@ struct _Thread
     uint64_t total_commit_validation_cycles;
     uint64_t commit_cycles;
     uint64_t total_cycles;
-    // sigjmp_buf* envPtr;
 };
 
 #endif
