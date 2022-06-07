@@ -50,7 +50,7 @@ __mram_ptr intset_t *set_new()
     return set;
 }
 
-int set_contains(__mram_ptr Thread *tx, __mram_ptr intset_t *set, val_t val)
+int set_contains(TYPE Thread *tx, __mram_ptr intset_t *set, val_t val)
 {
     int result;
     __mram_ptr node_t *prev, *next;
@@ -84,7 +84,7 @@ int set_contains(__mram_ptr Thread *tx, __mram_ptr intset_t *set, val_t val)
     return result;
 }
 
-int set_add(__mram_ptr Thread *tx, __mram_ptr intset_t *set, val_t val, int transactional)
+int set_add(TYPE Thread *tx, __mram_ptr intset_t *set, val_t val, int transactional)
 {
     int result;
     __mram_ptr node_t *prev, *next;
@@ -140,7 +140,7 @@ int set_add(__mram_ptr Thread *tx, __mram_ptr intset_t *set, val_t val, int tran
     return result;
 }
 
-int set_remove(__mram_ptr Thread *tx, __mram_ptr intset_t *set, val_t val)
+int set_remove(TYPE Thread *tx, __mram_ptr intset_t *set, val_t val)
 {
     int result = 0;
     __mram_ptr node_t *prev, *next;

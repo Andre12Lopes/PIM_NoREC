@@ -4,12 +4,12 @@ echo -e "N_THREADS\tN_TRANSACTIONS\tTIME\tN_ABORTS\tPROCESS_READ_TIME\tPROCESS_W
 make
 
 for (( i = 1; i < 13; i++ )); do
-	cd ../bank
+	cd ../intset
 	make clean
 	make NR_TASKLETS=$i
 	cd ../benchmark
 	
-	for (( j = 0; j < 1; j++ )); do
+	for (( j = 0; j < 10; j++ )); do
 		./launch >> results.txt
 	done
 done

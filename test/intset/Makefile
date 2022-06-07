@@ -1,7 +1,7 @@
 ROOT = ../..
 
 CC = dpu-upmem-dpurte-clang
-NR_TASKLETS = 4
+NR_TASKLETS = 12
 
 TM := norec
 SRCDIR := $(ROOT)/src
@@ -11,17 +11,17 @@ INCDIR := $(ROOT)/include
 LIBNOREC := $(LIBDIR)/lib$(TM).a
 TARGET = intset
 
-TARGET_OBJS = intset.o linked_list.o dpu_alloc.o
+TARGET_OBJS = intset.o linked_list.o hash_set.o dpu_alloc.o
 
 CFLAGS += -Wall -Wno-unused-label -Wno-unused-function -std=c11
 
 LDFLAGS += -L$(LIBDIR) -l$(TM)
 CPPFLAGS += -I$(SRCDIR)
 
-DEFINES += -DTX_IN_MRAM
-DEFINES += -DLINKED_LIST
+# DEFINES += -DTX_IN_MRAM
+# DEFINES += -DLINKED_LIST
 # DEFINES += -DSKIP_LIST
-# DEFINES += -DHASH_SET
+DEFINES += -DHASH_SET
 
 .PHONY:	all clean
 

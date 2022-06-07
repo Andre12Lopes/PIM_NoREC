@@ -3,7 +3,7 @@
 
 #include <perfcounter.h>
 
-#define NOREC_INIT_NUM_ENTRY      35
+#define NOREC_INIT_NUM_ENTRY      5
 
 typedef int BitMap;
 
