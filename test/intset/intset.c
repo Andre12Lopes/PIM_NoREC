@@ -20,8 +20,8 @@
 #endif
 
 #define UPDATE_PERCENTAGE   0
-#define SET_INITIAL_SIZE    10
-#define RAND_RANGE          100
+#define SET_INITIAL_SIZE    256
+#define RAND_RANGE          512
 
 #define N_TRANSACTIONS      100
 
@@ -50,11 +50,12 @@ __mram_ptr intset_t *set;
 Thread __mram_noinit t_mram[NR_TASKLETS];
 
 void test(TYPE Thread *tx, __mram_ptr intset_t *set, uint64_t *seed, int *last);
-void print_linked_list(__mram_ptr intset_t *set);
 
 int main()
 {
+#ifndef TX_IN_MRAM
     Thread tx;
+#endif
     int val; 
     int tid;
     uint64_t seed;
@@ -183,11 +184,6 @@ int main()
         barrier_wait(&barr);
     }
 
-    // if (me() == 0)
-    // {
-    //     print_linked_list(set);
-    // }
-
     return 0;
 }
 
@@ -221,13 +217,4 @@ void test(TYPE Thread *tx, __mram_ptr intset_t *set, uint64_t *seed, int *last)
         val = (RAND_R_FNC(*seed) % RAND_RANGE) + 1;
         set_contains(tx, set, val);
     }
-}
-
-
-void print_linked_list(__mram_ptr intset_t *set)
-{
-    // for (__mram_ptr node_t *n = set->head->next; n->next != NULL; n = n->next)
-    // {
-    //     printf("%p -> %u\n", n, n->val);
-    // }
 }

@@ -32,7 +32,6 @@ $(TARGET): $(TARGET_OBJS) $(TMLIB)
 
 intset.o: intset.c linked_list.h intset_macros.h
 linked_list.o: linked_list.c dpu_alloc.h intset_macros.h
-skip_list.o: skip_list.c dpu_alloc.h intset_macros.h
 hash_set.o: hash_set.c dpu_alloc.h intset_macros.h
 dpu_alloc.o: dpu_alloc.c
 

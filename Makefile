@@ -6,6 +6,7 @@ LD = $(CC)
 
 CFLAGS := -Wall -Wextra -Wno-unused-label -Wno-unused-function
 # CFLAGS  += -g -w -O3
+CFLAGS  += -Os
 # CFLAGS  += -m32
 
 TM := norec
