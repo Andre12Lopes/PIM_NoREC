@@ -75,7 +75,7 @@ int main()
     t_mram[tid].start_write = 0;
     t_mram[tid].start_validation = 0;
 #else
-    TxInit(&t, tid);
+    // TxInit(&t, tid);
 
     t.process_cycles = 0;
     t.read_cycles = 0;

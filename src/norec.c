@@ -115,7 +115,7 @@ MakeList (long sz, TYPE Log* log)
 }
 
 void 
-TxInit(TYPE Thread *t, long id)
+TxInit(TYPE Thread *t, long id, TYPE AVPair *rs_overflow, TYPE AVPair *ws_overflow)
 {
     /* CCM: so we can access NOREC's thread metadata in signal handlers */
     // pthread_setspecific(global_key_self, (void*)t);
@@ -131,9 +131,14 @@ TxInit(TYPE Thread *t, long id)
     t->process_cycles = 0;
     t->commit_cycles = 0;
 
+    // printf(">>> %p\n", rs_overflow);
+    // printf(">>> %p\n", ws_overflow);
+
+    t->wrSet.List = rs_overflow;
     MakeList(NOREC_INIT_NUM_ENTRY, &(t->wrSet));
     t->wrSet.put = t->wrSet.List;
 
+    t->rdSet.List = ws_overflow;
     MakeList(NOREC_INIT_NUM_ENTRY, &(t->rdSet));
     t->rdSet.put = t->rdSet.List;
 }

@@ -20,8 +20,8 @@
 #endif
 
 #define UPDATE_PERCENTAGE   0
-#define SET_INITIAL_SIZE    256
-#define RAND_RANGE          512
+#define SET_INITIAL_SIZE    10
+#define RAND_RANGE          100
 
 #define N_TRANSACTIONS      100
 
@@ -47,15 +47,20 @@ __host uint64_t n_tasklets;
 
 __mram_ptr intset_t *set;
 
-Thread __mram_noinit t_mram[NR_TASKLETS];
+#ifdef TX_IN_MRAM
+// Thread __mram_noinit t_mram[NR_TASKLETS];
+#endif
+
+AVPair __mram_noinit rs_overflow[NR_TASKLETS][NOREC_INIT_NUM_ENTRY];
+AVPair __mram_noinit ws_overflow[NR_TASKLETS][NOREC_INIT_NUM_ENTRY];
 
 void test(TYPE Thread *tx, __mram_ptr intset_t *set, uint64_t *seed, int *last);
 
 int main()
 {
-#ifndef TX_IN_MRAM
+// #ifndef TX_IN_MRAM
     Thread tx;
-#endif
+// #endif
     int val; 
     int tid;
     uint64_t seed;
@@ -66,25 +71,25 @@ int main()
     seed = me();
     tid = me();
 
-#ifdef TX_IN_MRAM
-    TxInit(&t_mram[tid], tid);
+// #ifdef TX_IN_MRAM
+//     TxInit(&t_mram[tid], tid);
 
-    t_mram[tid].process_cycles = 0;
-    t_mram[tid].read_cycles = 0;
-    t_mram[tid].write_cycles = 0;
-    t_mram[tid].validation_cycles = 0;
-    t_mram[tid].total_read_cycles = 0;
-    t_mram[tid].total_write_cycles = 0;
-    t_mram[tid].total_validation_cycles = 0;
-    t_mram[tid].total_commit_validation_cycles = 0;
-    t_mram[tid].commit_cycles = 0;
-    t_mram[tid].total_cycles = 0;
-    t_mram[tid].start_time = 0;
-    t_mram[tid].start_read = 0;
-    t_mram[tid].start_write = 0;
-    t_mram[tid].start_validation = 0;
-#else
-    TxInit(&tx, tid);
+//     t_mram[tid].process_cycles = 0;
+//     t_mram[tid].read_cycles = 0;
+//     t_mram[tid].write_cycles = 0;
+//     t_mram[tid].validation_cycles = 0;
+//     t_mram[tid].total_read_cycles = 0;
+//     t_mram[tid].total_write_cycles = 0;
+//     t_mram[tid].total_validation_cycles = 0;
+//     t_mram[tid].total_commit_validation_cycles = 0;
+//     t_mram[tid].commit_cycles = 0;
+//     t_mram[tid].total_cycles = 0;
+//     t_mram[tid].start_time = 0;
+//     t_mram[tid].start_read = 0;
+//     t_mram[tid].start_write = 0;
+//     t_mram[tid].start_validation = 0;
+// #else
+    TxInit(&tx, tid, rs_overflow[tid], ws_overflow[tid]);
 
     tx.process_cycles = 0;
     tx.read_cycles = 0;
@@ -100,7 +105,7 @@ int main()
     tx.start_read = 0;
     tx.start_write = 0;
     tx.start_validation = 0;
-#endif
+// #endif
 
     if (tid == 0)
     {
@@ -128,11 +133,11 @@ int main()
 
     for (int i = 0; i < N_TRANSACTIONS; ++i)
     {
-#ifdef TX_IN_MRAM
-        test(&(t_mram[tid]), set, &seed, &last);
-#else
+// #ifdef TX_IN_MRAM
+//         test(&(t_mram[tid]), set, &seed, &last);
+// #else
         test(&tx, set, &seed, &last);
-#endif
+// #endif
     }
 
     barrier_wait(&barr);
@@ -154,19 +159,19 @@ int main()
     {
         if (me() == i)
         {
-#ifdef TX_IN_MRAM
-            n_aborts += t_mram[tid].Aborts;
+// #ifdef TX_IN_MRAM
+//             n_aborts += t_mram[tid].Aborts;
 
-            nb_process_cycles += ((double) t_mram[tid].process_cycles / (N_TRANSACTIONS * NR_TASKLETS));
-            nb_process_read_cycles += ((double) t_mram[tid].total_read_cycles / (N_TRANSACTIONS * NR_TASKLETS));
-            nb_process_write_cycles += ((double) t_mram[tid].total_write_cycles / (N_TRANSACTIONS * NR_TASKLETS));
-            nb_process_validation_cycles += ((double) t_mram[tid].total_validation_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+//             nb_process_cycles += ((double) t_mram[tid].process_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+//             nb_process_read_cycles += ((double) t_mram[tid].total_read_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+//             nb_process_write_cycles += ((double) t_mram[tid].total_write_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+//             nb_process_validation_cycles += ((double) t_mram[tid].total_validation_cycles / (N_TRANSACTIONS * NR_TASKLETS));
 
-            nb_commit_cycles += ((double) t_mram[tid].commit_cycles / (N_TRANSACTIONS * NR_TASKLETS));
-            nb_commit_validation_cycles += ((double) t_mram[tid].total_commit_validation_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+//             nb_commit_cycles += ((double) t_mram[tid].commit_cycles / (N_TRANSACTIONS * NR_TASKLETS));
+//             nb_commit_validation_cycles += ((double) t_mram[tid].total_commit_validation_cycles / (N_TRANSACTIONS * NR_TASKLETS));
 
-            nb_wasted_cycles += ((double) (t_mram[tid].total_cycles - (t_mram[tid].process_cycles + t_mram[tid].commit_cycles)) / (N_TRANSACTIONS * NR_TASKLETS));
-#else
+//             nb_wasted_cycles += ((double) (t_mram[tid].total_cycles - (t_mram[tid].process_cycles + t_mram[tid].commit_cycles)) / (N_TRANSACTIONS * NR_TASKLETS));
+// #else
             n_aborts += tx.Aborts;
 
             nb_process_cycles += ((double) tx.process_cycles / (N_TRANSACTIONS * NR_TASKLETS));
@@ -178,7 +183,7 @@ int main()
             nb_commit_validation_cycles += ((double) tx.total_commit_validation_cycles / (N_TRANSACTIONS * NR_TASKLETS));
 
             nb_wasted_cycles += ((double) (tx.total_cycles - (tx.process_cycles + tx.commit_cycles)) / (N_TRANSACTIONS * NR_TASKLETS));
-#endif
+// #endif
         }
 
         barrier_wait(&barr);

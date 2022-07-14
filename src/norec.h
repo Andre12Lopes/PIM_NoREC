@@ -15,11 +15,13 @@
 #define TYPE_ACC
 #endif
 
+#include "thread_def.h"
+
 typedef struct _Thread Thread;
 
 void TxAbort(TYPE Thread *);
 
-void TxInit(TYPE Thread *t, long id);
+void TxInit(TYPE Thread *t, long id, __mram_ptr AVPair *rs_overflow, __mram_ptr AVPair *ws_overflow);
 
 void TxStart(TYPE Thread *);
 

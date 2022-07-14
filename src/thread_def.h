@@ -3,7 +3,7 @@
 
 #include <perfcounter.h>
 
-#define NOREC_INIT_NUM_ENTRY      2
+#define NOREC_INIT_NUM_ENTRY      45
 
 typedef int BitMap;
 
@@ -18,7 +18,8 @@ typedef struct _AVPair
 
 typedef struct _Log
 {
-    AVPair List[NOREC_INIT_NUM_ENTRY];
+    // AVPair List[NOREC_INIT_NUM_ENTRY];
+    TYPE AVPair *List;
     TYPE AVPair *put;        /* Insert position - cursor */
     TYPE AVPair *tail;       /* CCM: Pointer to last valid entry */
     TYPE AVPair *end;        /* CCM: Pointer to last entry */
