@@ -40,7 +40,7 @@ MarsagliaXORV(unsigned long long x)
 }
 
 static inline unsigned long long 
-MarsagliaXOR(TYPE unsigned long long *seed)
+MarsagliaXOR(unsigned long long *seed)
 {
     unsigned long long x = MarsagliaXORV(*seed);
     *seed = x;
@@ -49,13 +49,13 @@ MarsagliaXOR(TYPE unsigned long long *seed)
 }
 
 static inline unsigned long long 
-TSRandom(TYPE Thread *Self)
+TSRandom(Thread *Self)
 {
     return MarsagliaXOR(&Self->rng);
 }
 
 static inline void 
-backoff(TYPE Thread *Self, long attempt)
+backoff(Thread *Self, long attempt)
 {
     unsigned long long stall = TSRandom(Self) & 0xF;
     stall += attempt >> 2;
@@ -71,7 +71,7 @@ backoff(TYPE Thread *Self, long attempt)
 }
 
 void 
-TxAbort(TYPE Thread *Self)
+TxAbort(Thread *Self)
 {
     Self->Aborts++;
 
@@ -92,7 +92,7 @@ TxAbort(TYPE Thread *Self)
 // --------------------------------------------------------------
 
 static inline TYPE AVPair*
-MakeList (long sz, TYPE Log* log)
+MakeList (long sz, Log* log)
 {
     TYPE AVPair* ap = log->List;
     // assert(ap);
@@ -102,7 +102,8 @@ MakeList (long sz, TYPE Log* log)
     TYPE AVPair* List = ap;
     TYPE AVPair* Tail = NULL;
     long i;
-    for (i = 0; i < sz; i++) {
+    for (i = 0; i < sz; i++)
+    {
         TYPE AVPair* e = ap++;
         e->Next    = ap;
         e->Prev    = Tail;
@@ -115,7 +116,7 @@ MakeList (long sz, TYPE Log* log)
 }
 
 void 
-TxInit(TYPE Thread *t, long id, TYPE AVPair *rs_overflow, TYPE AVPair *ws_overflow)
+TxInit(Thread *t, long id, TYPE AVPair *rs_overflow, TYPE AVPair *ws_overflow)
 {
     /* CCM: so we can access NOREC's thread metadata in signal handlers */
     // pthread_setspecific(global_key_self, (void*)t);
@@ -131,22 +132,31 @@ TxInit(TYPE Thread *t, long id, TYPE AVPair *rs_overflow, TYPE AVPair *ws_overfl
     t->process_cycles = 0;
     t->commit_cycles = 0;
 
-    // printf(">>> %p\n", rs_overflow);
-    // printf(">>> %p\n", ws_overflow);
+    t->rdSet.List = rs_overflow;
+    MakeList(NOREC_INIT_NUM_ENTRY, &(t->rdSet));
+    t->rdSet.put = t->rdSet.List;
 
-    t->wrSet.List = rs_overflow;
+    t->wrSet.List = ws_overflow;
     MakeList(NOREC_INIT_NUM_ENTRY, &(t->wrSet));
     t->wrSet.put = t->wrSet.List;
 
-    t->rdSet.List = ws_overflow;
-    MakeList(NOREC_INIT_NUM_ENTRY, &(t->rdSet));
-    t->rdSet.put = t->rdSet.List;
+    // printf("%p\n", t->rdSet.List);
+    // printf("%p\n", t->rdSet.put);
+    // printf("%p\n", t->rdSet.tail);
+    // printf("%p\n", t->rdSet.end);
+
+    // printf("%p\n", t->wrSet.List);
+    // printf("%p\n", t->wrSet.put);
+    // printf("%p\n", t->wrSet.tail);
+    // printf("%p\n", t->wrSet.end);
+
+    printf("AA\n");
 }
 
 // --------------------------------------------------------------
 
 static inline void
-txReset (TYPE Thread* Self)
+txReset (Thread* Self)
 {
     Self->wrSet.put = Self->wrSet.List;
     Self->wrSet.tail = NULL;
@@ -159,7 +169,7 @@ txReset (TYPE Thread* Self)
 }
 
 void 
-TxStart(TYPE Thread *Self)
+TxStart(Thread *Self)
 {
     txReset(Self);
 
@@ -188,7 +198,7 @@ TxStart(TYPE Thread *Self)
 
 // returns -1 if not coherent
 static inline long 
-ReadSetCoherent(TYPE Thread *Self)
+ReadSetCoherent(Thread *Self)
 {
     long time;
     while (1)
@@ -200,7 +210,7 @@ ReadSetCoherent(TYPE Thread *Self)
             continue;
         }
 
-        TYPE Log *const rd = &Self->rdSet;
+        Log *const rd = &Self->rdSet;
         TYPE AVPair *const EndOfList = rd->put;
         TYPE AVPair *e;
         for (e = rd->List; e != EndOfList; e = e->Next)
@@ -216,6 +226,7 @@ ReadSetCoherent(TYPE Thread *Self)
             break;
         }
     }
+
     return time;
 }
 
@@ -233,7 +244,7 @@ ReadSetCoherent(TYPE Thread *Self)
 // }
 
 intptr_t 
-TxLoad(TYPE Thread *Self, volatile __mram_ptr intptr_t *Addr)
+TxLoad(Thread *Self, volatile __mram_ptr intptr_t *Addr)
 {
     intptr_t Valu;
 
@@ -247,7 +258,7 @@ TxLoad(TYPE Thread *Self, volatile __mram_ptr intptr_t *Addr)
     intptr_t msk = FILTERBITS(Addr);
     if ((Self->wrSet.BloomFilter & msk) == msk)
     {
-        TYPE Log *wr = &Self->wrSet;
+        Log *wr = &Self->wrSet;
         TYPE AVPair *e;
         for (e = wr->tail; e != NULL; e = e->Prev)
         {
@@ -284,7 +295,7 @@ TxLoad(TYPE Thread *Self, volatile __mram_ptr intptr_t *Addr)
         Valu = LDNF(Addr);
     }
 
-    TYPE Log *k = &Self->rdSet;
+    Log *k = &Self->rdSet;
     TYPE AVPair *e = k->put;
     if (e == NULL)
     {
@@ -309,11 +320,11 @@ TxLoad(TYPE Thread *Self, volatile __mram_ptr intptr_t *Addr)
 // --------------------------------------------------------------
 
 void 
-TxStore(TYPE Thread *Self, volatile __mram_ptr intptr_t *addr, intptr_t valu)
+TxStore(Thread *Self, volatile __mram_ptr intptr_t *addr, intptr_t valu)
 {
     Self->start_write = perfcounter_config(COUNT_CYCLES, false);
 
-    TYPE Log *k = &Self->wrSet;
+    Log *k = &Self->wrSet;
 
     k->BloomFilter |= FILTERBITS(addr);
 
@@ -339,7 +350,7 @@ TxStore(TYPE Thread *Self, volatile __mram_ptr intptr_t *addr, intptr_t valu)
 // --------------------------------------------------------------
 
 static inline void 
-txCommitReset(TYPE Thread *Self)
+txCommitReset(Thread *Self)
 {
     txReset(Self);
     Self->Retries = 0;
@@ -348,7 +359,7 @@ txCommitReset(TYPE Thread *Self)
 }
 
 static inline void 
-WriteBackForward(TYPE Log *k)
+WriteBackForward(Log *k)
 {
     TYPE AVPair *e;
     TYPE AVPair *End = k->put;
@@ -359,9 +370,9 @@ WriteBackForward(TYPE Log *k)
 }
 
 static inline long 
-TryFastUpdate(TYPE Thread *Self)
+TryFastUpdate(Thread *Self)
 {
-    TYPE Log *const wr = &Self->wrSet;
+    Log *const wr = &Self->wrSet;
     perfcounter_t s_time;
     // long ctr;
 
@@ -403,7 +414,7 @@ acquire:
 }
 
 int 
-TxCommit(TYPE Thread *Self)
+TxCommit(Thread *Self)
 {
     uint64_t t_process_cycles;
 

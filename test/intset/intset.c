@@ -19,7 +19,7 @@
 #include "hash_set.h"
 #endif
 
-#define UPDATE_PERCENTAGE   0
+#define UPDATE_PERCENTAGE   50
 #define SET_INITIAL_SIZE    10
 #define RAND_RANGE          100
 
@@ -51,8 +51,8 @@ __mram_ptr intset_t *set;
 // Thread __mram_noinit t_mram[NR_TASKLETS];
 #endif
 
-AVPair __mram_noinit rs_overflow[NR_TASKLETS][NOREC_INIT_NUM_ENTRY];
-AVPair __mram_noinit ws_overflow[NR_TASKLETS][NOREC_INIT_NUM_ENTRY];
+AVPair __mram_noinit rs_overflow[NR_TASKLETS + 1][NOREC_INIT_NUM_ENTRY];
+AVPair __mram_noinit ws_overflow[NR_TASKLETS + 1][NOREC_INIT_NUM_ENTRY];
 
 void test(TYPE Thread *tx, __mram_ptr intset_t *set, uint64_t *seed, int *last);
 
@@ -89,7 +89,7 @@ int main()
 //     t_mram[tid].start_write = 0;
 //     t_mram[tid].start_validation = 0;
 // #else
-    TxInit(&tx, tid, rs_overflow[tid], ws_overflow[tid]);
+    TxInit(&tx, tid, &(rs_overflow[tid + 1][0]), &(ws_overflow[tid + 1][0]));
 
     tx.process_cycles = 0;
     tx.read_cycles = 0;

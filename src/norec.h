@@ -19,17 +19,17 @@
 
 typedef struct _Thread Thread;
 
-void TxAbort(TYPE Thread *);
+void TxAbort(Thread *);
 
-void TxInit(TYPE Thread *t, long id, __mram_ptr AVPair *rs_overflow, __mram_ptr AVPair *ws_overflow);
+void TxInit(Thread *t, long id, __mram_ptr AVPair *rs_overflow, __mram_ptr AVPair *ws_overflow);
 
-void TxStart(TYPE Thread *);
+void TxStart(Thread *);
 
-intptr_t TxLoad(TYPE Thread *, volatile __mram_ptr intptr_t *);
+intptr_t TxLoad(Thread *, volatile __mram_ptr intptr_t *);
 
-void TxStore(TYPE Thread *, volatile __mram_ptr intptr_t *, intptr_t);
+void TxStore(Thread *, volatile __mram_ptr intptr_t *, intptr_t);
 
-int TxCommit(TYPE Thread *);
+int TxCommit(Thread *);
 // int TxCommitSTM(Thread *);
 
 #endif
